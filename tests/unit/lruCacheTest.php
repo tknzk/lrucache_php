@@ -12,10 +12,14 @@ class lruCacheTest extends \Codeception\TestCase\Test
 
     protected function _before()
     {
+        $cache = new lruCache(10);
+        $cache->initApc();
     }
 
     protected function _after()
     {
+        $cache = new lruCache(10);
+        $cache->initApc();
     }
 
     public function testStartEmpty()
@@ -93,6 +97,23 @@ class lruCacheTest extends \Codeception\TestCase\Test
 
         $this->assertNull($cache->get($key1));
         $this->assertEquals($cache->get($key10), $value10);
+
+    }
+
+    public function testMassivePut()
+    {
+        $size   = 5000;
+        $cache  = new lruCache($size);
+
+        $value = 'some value';
+        for ($i = 1; $i <= $size; $i++) {
+            ${"key".$i}    = sprintf('key%s', $i);
+            ${"value".$i}  = sprintf('value of key%s', $i);
+            $cache->put(${"key".$i}, ${"value".$i});
+        }
+
+        $this->assertEquals($cache->get('key1'), $value1);
+        $this->assertEquals($cache->get('key200'), $value200);
 
     }
 
