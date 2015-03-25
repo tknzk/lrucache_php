@@ -92,6 +92,34 @@ class lruCacheTest extends \Codeception\TestCase\Test
         $this->assertFalse($result);
     }
 
+    public function testUpdateExistsKey()
+    {
+        $size   = 3;
+        $cache  = new lruCache($size);
+
+        $key1   = 'key1';
+        $value1 = 'value of key1';
+        $key2   = 'key2';
+        $value2 = 'value of key2';
+        $key3   = 'key3';
+        $value3 = 'value of key3';
+
+        $update = 'update value of key2';
+
+        $cache->put($key1, $value1);
+        $cache->put($key2, $value2);
+        $cache->put($key3, $value3);
+
+        $this->assertEquals($cache->get($key1), $value1);
+        $this->assertEquals($cache->get($key2), $value2);
+        $this->assertEquals($cache->get($key3), $value3);
+
+        $cache->put($key2, $update);
+
+        $this->assertEquals($cache->get($key2), $update);
+        $this->assertNotEquals($cache->get($key2), $value2);
+    }
+
     public function testLeastRecently()
     {
         $size   = 3;
