@@ -11,6 +11,8 @@
  */
 class lruCache
 {
+    const KEYMAP_KEYNAME = 'keymap';
+
     /**
      * capacity
      *
@@ -35,6 +37,7 @@ class lruCache
      */
     private $datas;
 
+
     /**
      * __construct
      *
@@ -45,7 +48,6 @@ class lruCache
     public function __construct($capacity)
     {
         $this->capacity = $capacity;
-        $this->datas    = [];
         $this->keys     = [];
     }
 
@@ -58,19 +60,19 @@ class lruCache
      */
     public function get($key)
     {
-        if (isset($this->datas[$key])) {
-
-            // change access key map
-            $recent = array_search($key, $this->keys);
-            unset($this->keys[$recent]);
-            array_unshift($this->keys, $key);
-
-            // return value
-            return $this->datas[$key];
-
-        } else {
-            return null;
+        $this->getKeyMap();
+        if (in_array($key, $this->keys, true)) {
+            $ret = $this->fetch($key);
+            if (is_null($ret) === false) {
+                $recent = array_search($key, $this->keys, true);
+                unset($this->keys[$recent]);
+                array_unshift($this->keys, $key);
+                $this->storeKeyMap();
+                return $ret;
+            }
         }
+
+        return null;
     }
 
     /**
@@ -82,14 +84,18 @@ class lruCache
      */
     public function put($key, $value)
     {
+        $this->getKeyMap();
         if ($this->capacity <= count($this->keys)) {
             // remove oldest
             $oldest = array_pop($this->keys);
-            unset($this->datas[$oldest]);
+            $this->delete($oldest);
         }
         // set
-        $this->datas[$key] = $value;
-        array_unshift($this->keys, $key);
+        $ret = $this->store($key, $value);
+        if ($ret) {
+            array_unshift($this->keys, $key);
+            $this->storeKeyMap();
+        }
     }
 
     /**
@@ -101,11 +107,15 @@ class lruCache
      */
     public function remove($key)
     {
-        if (isset($this->datas[$key])) {
-            unset($this->datas[$key]);
-            $remove = array_search($key, $this->keys);
-            unset($this->keys[$remove]);
-            return true;
+        $this->getKeyMap();
+        if (in_array($key, $this->keys, true)) {
+            $remove = array_search($key, $this->keys, true);
+            $ret = $this->delete($key);
+            if ($ret) {
+                unset($this->keys[$remove]);
+                $this->storeKeyMap();
+                return true;
+            }
         }
         return false;
     }
@@ -119,7 +129,12 @@ class lruCache
      */
     public function dataDump()
     {
-        return $this->datas;
+        $this->getKeyMap();
+        $datas = [];
+        foreach ($this->keys as $key) {
+            $datas[$key] = $this->fetch($key);
+        }
+        return $datas;
     }
 
     /**
@@ -131,7 +146,51 @@ class lruCache
      */
     public function keyDump()
     {
+        $this->getKeyMap();
         return $this->keys;
+    }
+
+
+    private function fetch($key)
+    {
+        $value = apc_fetch($key, $ret);
+        if ($ret) {
+            return $value;
+        } else {
+            return null;
+        }
+    }
+
+    private function store($key, $value)
+    {
+        $ret = apc_store($key, $value);
+        return $ret;
+    }
+
+    private function delete($key)
+    {
+        $ret = apc_delete($key);
+        return $ret;
+    }
+
+    private function getKeyMap()
+    {
+        $map = apc_fetch(self::KEYMAP_KEYNAME, $ret);
+        if ($ret === false) {
+            $map = [];
+        }
+        $this->keys = $map;
+    }
+
+    private function storeKeyMap()
+    {
+        $map = $this->keys;
+        apc_store(self::KEYMAP_KEYNAME, $this->keys);
+    }
+
+    public function initApc()
+    {
+        apc_clear_cache();
     }
 
 }
