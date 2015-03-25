@@ -89,7 +89,7 @@ class lruCache
         }
         // set
         $this->datas[$key] = $value;
-        array_push($this->keys, $key);
+        array_unshift($this->keys, $key);
     }
 
     /**
