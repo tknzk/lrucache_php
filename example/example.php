@@ -1,5 +1,5 @@
 <?php
-require_once dirname(__FILE__) .'/lruCache.php';
+require_once dirname(__FILE__) .'/../src/lruCache.php';
 
 //$size   = 10;
 //$cache  = new lruCache($size);
