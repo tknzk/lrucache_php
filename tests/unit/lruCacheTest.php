@@ -92,7 +92,7 @@ class lruCacheTest extends \Codeception\TestCase\Test
         $this->assertFalse($result);
     }
 
-    public function testLeastRecentry()
+    public function testLeastRecently()
     {
         $size   = 3;
         $cache  = new lruCache($size);
