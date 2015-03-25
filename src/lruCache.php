@@ -32,9 +32,8 @@ class lruCache
     /**
      * __construct
      *
-     * @param mixed $capacity
+     * @param int $capacity
      * @access public
-     * @return void
      */
     public function __construct($capacity)
     {
