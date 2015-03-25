@@ -102,7 +102,7 @@ class lruCacheTest extends \Codeception\TestCase\Test
 
     public function testMassivePut()
     {
-        $size   = 5000;
+        $size   = 10000;
         $cache  = new lruCache($size);
 
         $value = 'some value';
