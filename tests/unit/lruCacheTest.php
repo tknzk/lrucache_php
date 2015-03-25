@@ -80,6 +80,22 @@ class lruCacheTest extends \Codeception\TestCase\Test
         $this->assertEquals($cache->get($key3), $value3);
     }
 
+    public function testOverCapacity()
+    {
+        $size   = 10;
+        $cache  = new lruCache($size);
+
+        for ($i = 1; $i <= 15; $i++) {
+            ${"key".$i}    = sprintf('key%s', $i);
+            ${"value".$i}  = sprintf('value of key%s', $i);
+            $cache->put(${"key".$i}, ${"value".$i});
+        }
+
+        $this->assertNull($cache->get($key1));
+        $this->assertEquals($cache->get($key10), $value10);
+
+    }
+
     public function testEmptyRemove()
     {
         $size   = 3;
