@@ -61,10 +61,10 @@ class lruCache
     public function get($key)
     {
         $this->getKeyMap();
-        if (in_array($key, $this->keys, true)) {
+        if ($this->check($key) !== false) {
             $ret = $this->fetch($key);
             if (is_null($ret) === false) {
-                $recent = array_search($key, $this->keys, true);
+                $recent = $this->check($key);
                 unset($this->keys[$recent]);
                 array_unshift($this->keys, $key);
                 $this->storeKeyMap();
@@ -108,8 +108,8 @@ class lruCache
     public function remove($key)
     {
         $this->getKeyMap();
-        if (in_array($key, $this->keys, true)) {
-            $remove = array_search($key, $this->keys, true);
+        if ($this->check($key) !== false) {
+            $remove = $this->check($key);
             $ret = $this->delete($key);
             if ($ret) {
                 unset($this->keys[$remove]);
@@ -186,6 +186,16 @@ class lruCache
     {
         $map = $this->keys;
         apc_store(self::KEYMAP_KEYNAME, $this->keys);
+    }
+
+    private function check($key)
+    {
+        $this->getKeyMap();
+        $flip_keys = array_flip($this->keys);
+        if (isset($flip_keys[$key])) {
+            return $flip_keys[$key];
+        }
+        return false;
     }
 
     public function initApc()
